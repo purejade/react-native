@@ -10,8 +10,11 @@ let {
   Image,
 } = React;
 
+var TimerMixin = require('react-timer-mixin');
+
 var MovieCell = require('./MovieCell');
 var MovieScreen = require('./MovieScreen');
+var SearchBar = require('SearchBar');
 
 var API_URL = 'http://api.rottentomatoes.com/api/public/v1.0/';
 var API_KEYS = [
@@ -37,7 +40,8 @@ var resultsCache = {
 var LOADING = {};
 
 let SearchScreen = React.createClass({
-  
+  mixins: [TimerMixin],
+  timeoutID: (null: any),
 
   getInitialState: function() {
     return {
@@ -281,19 +285,37 @@ let SearchScreen = React.createClass({
       />
     );
   },
+  onSearchChange: function(event: Object) {
+    var filter = event.nativeEvent.text.toLowerCase();
+
+    this.clearTimeout(this.timeoutID);
+    this.timeoutID = this.setTimeout(() => this.searchMovies(filter), 100);
+  },
 
   render: function() {
+    let content = "";
     if (this.state.dataSource.getRowCount() === 0) {
-      return this.renderLoadingView();
+      content = this.renderLoadingView();
     }
-    return (
-      <ListView
+    content = <ListView
+        ref="listview"
         dataSource={this.state.dataSource}
         renderSeparator={this.renderSeparator}
         renderRow={this.renderRow}
         onEndReached={this.onEndReached}
         style={styles.listView}
       />
+    return (
+      <View style={styles.container}>
+        <SearchBar
+          onSearchChange={this.onSearchChange}
+          isLoading={this.state.isLoading}
+          onFocus={() =>
+            this.refs.listview && this.refs.listview.getScrollResponder().scrollTo({ x: 0, y: 0 })}
+        />
+        <View style={styles.separator} />
+        {content}
+      </View>
     );
   },
 });
@@ -302,29 +324,21 @@ let SearchScreen = React.createClass({
 var styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'row',
-    justifyContent: 'center',
+    backgroundColor: 'white',
+  },
+  centerText: {
     alignItems: 'center',
-    backgroundColor: '#F5FCFF',
   },
-  rightContainer: {
-    flex: 1,
+  noMoviesText: {
+    marginTop: 80,
+    color: '#888888',
   },
-  title: {
-    fontSize: 20,
-    marginBottom: 8,
-    textAlign: 'center',
+  separator: {
+    height: 1,
+    backgroundColor: '#eeeeee',
   },
-  year: {
-    textAlign: 'center',
-  },
-  thumbnail: {
-    width: 53,
-    height: 81,
-  },
-  listView: {
-    paddingTop: 20,
-    backgroundColor: '#F5FCFF',
+  scrollSpinner: {
+    marginVertical: 20,
   },
   rowSeparator: {
     backgroundColor: 'rgba(0, 0, 0, 0.1)',

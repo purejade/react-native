@@ -34,21 +34,10 @@ let AzfProject = React.createClass({
   }
 });
 
-const styles = StyleSheet.create({
+var styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: 'white',
-  },
-  welcome: {
-    fontSize: 22,
-    textAlign: 'center',
-    color: '#333333',
-    marginTop:200,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
   },
 });
 
