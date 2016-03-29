@@ -15,21 +15,9 @@ let {
   View
 } = React;
 
-let SearchScreen = React.createClass({
-  render() {
-    return (
-      <View style={styles.welcome}>
-        <Text style={styles.instructions}>
-          Welcome to React Native!
-          To get started, edit index.ios.js
-          Press Cmd+R to reload,{'\n'}
-          Cmd+D or shake for dev menu
-          you know what happened!
-       </Text> 
-      </View>
-    );
-  }
-});
+
+var SearchScreen = require('./SearchScreen');
+
 let AzfProject = React.createClass({
   render() {
     return (
@@ -40,6 +28,8 @@ let AzfProject = React.createClass({
             title: 'MoviesSearch',
             component: SearchScreen,
           }} />
+
+          
     );
   }
 });
@@ -50,7 +40,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
   },
   welcome: {
-    fontSize: 20,
+    fontSize: 22,
     textAlign: 'center',
     color: '#333333',
     marginTop:200,
