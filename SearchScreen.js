@@ -71,6 +71,7 @@ let SearchScreen = React.createClass({
   },
 
   searchMovies: function(query : string) {
+    this.setState({filter: query});
     let cachedResultsForQuery = resultsCache.dataForQuery[query];
     if (cachedResultsForQuery) {
       if (!LOADING[query]) {
@@ -87,9 +88,11 @@ let SearchScreen = React.createClass({
     }
 
     LOADING[query] = true;
+    resultsCache.dataForQuery[query] = null;
     this.setState({
       queryNumber: this.state.queryNumber + 1,
-      isLoadingTail: true, 
+      isLoading: true,
+      isLoadingTail: false,
     });
 
     let page = resultsCache.nextPageNumberForQuery[query];
@@ -124,6 +127,72 @@ let SearchScreen = React.createClass({
       .done();
   },
 
+  hasMore: function(): boolean {
+    var query = this.state.filter;
+    if (!resultsCache.dataForQuery[query]) {
+      return true;
+    }
+    return (
+      resultsCache.totalForQuery[query] !==
+      resultsCache.dataForQuery[query].length
+    );
+  },
+
+  onEndReached: function() {
+    var query = this.state.filter;
+    if (!this.hasMore() || this.state.isLoadingTail) {
+      console.log('no more data' + this.hasMore());
+      // We're already fetching or have all the elements so noop
+      return;
+    }
+
+    if (LOADING[query]) {
+      return;
+    }
+
+    LOADING[query] = true;
+    this.setState({
+      queryNumber: this.state.queryNumber + 1,
+      isLoadingTail: true,
+    });
+
+    var page = resultsCache.nextPageNumberForQuery[query];
+    fetch(this._urlForQueryAndPage(query, page))
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error(error);
+        LOADING[query] = false;
+        this.setState({
+          isLoadingTail: false,
+        });
+      })
+      .then((responseData) => {
+        var moviesForQuery = resultsCache.dataForQuery[query].slice();
+
+        LOADING[query] = false;
+        // We reached the end of the list before the expected number of results
+        if (!responseData.movies) {
+          resultsCache.totalForQuery[query] = moviesForQuery.length;
+        } else {
+          for (var i in responseData.movies) {
+            moviesForQuery.push(responseData.movies[i]);
+          }
+          resultsCache.dataForQuery[query] = moviesForQuery;
+          resultsCache.nextPageNumberForQuery[query] += 1;
+        }
+
+        if (this.state.filter !== query) {
+          // do not update state if the query is stale
+          return;
+        }
+
+        this.setState({
+          isLoadingTail: false,
+          dataSource: this.getDataSource(resultsCache.dataForQuery[query]),
+        });
+      })
+      .done();
+  },
   getDataSource: function(movies: Array<any>): ListView.DataSource {
     return this.state.dataSource.cloneWithRows(movies)
   },
@@ -222,6 +291,7 @@ let SearchScreen = React.createClass({
         dataSource={this.state.dataSource}
         renderSeparator={this.renderSeparator}
         renderRow={this.renderRow}
+        onEndReached={this.onEndReached}
         style={styles.listView}
       />
     );
