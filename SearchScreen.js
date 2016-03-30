@@ -8,6 +8,8 @@ let {
   ListView,
   Platform,
   Image,
+  ActivityIndicatorIOS,
+  ProgressBarAndroid,
 } = React;
 
 var TimerMixin = require('react-timer-mixin');
@@ -285,6 +287,22 @@ let SearchScreen = React.createClass({
       />
     );
   },
+
+  renderFooter: function() {
+    if (!this.hasMore() || !this.state.isLoadingTail) {
+      return <View style={styles.scrollSpinner} />;
+    }
+    if (Platform.OS === 'ios') {
+      return <ActivityIndicatorIOS style={styles.scrollSpinner} />;
+    } else {
+      return (
+        <View  style={{alignItems: 'center'}}>
+          <ProgressBarAndroid styleAttr="Large"/>
+        </View>
+      );
+    }
+  },
+
   onSearchChange: function(event: Object) {
     var filter = event.nativeEvent.text.toLowerCase();
 
@@ -302,6 +320,7 @@ let SearchScreen = React.createClass({
         dataSource={this.state.dataSource}
         renderSeparator={this.renderSeparator}
         renderRow={this.renderRow}
+        renderFooter={this.renderFooter}
         onEndReached={this.onEndReached}
         style={styles.listView}
       />

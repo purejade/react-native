@@ -8,6 +8,5 @@
 	
 	- Getting Started Guide to install React Native and its dependencies 
 	
-		
-
+    - Example/Movie
 
